@@ -34,8 +34,8 @@ def scatter_center(scatter: float, ax: plt.Axes, cmap, norm, y_bias) -> None:
 	# self.draw_circle_in_polar(radius=self.y_bias, ax=ax)
 	ax.plot(
 		theta,
-		[y_bias - 0.05] * len(theta),
-		linewidth=1.5,
+		[y_bias - 0.025] * len(theta),
+		linewidth=2,
 		zorder=100,
 		color="black",
 		linestyle="-",
@@ -43,7 +43,7 @@ def scatter_center(scatter: float, ax: plt.Axes, cmap, norm, y_bias) -> None:
 	)
 	ax.fill(
 		theta,
-		[y_bias - 0.05] * len(theta),
+		[y_bias - 0.025] * len(theta),
 		zorder=100,
 		color=cmap(norm(scatter)),
 		alpha=1,

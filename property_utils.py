@@ -45,10 +45,23 @@ def cbar_property(property, composition):
 		cmap = custom_cmap
 		boundaries = list(np.round(np.linspace(-50, 50, n), 0))
 		norm = mcolors.BoundaryNorm(boundaries, cmap.N)
-	
+
+	elif property == 'e_hull':
+		base_cmap = plt.get_cmap('OrRd')
+		n = 10
+		colors = [
+			'#009988',  # Dark blue for 0
+			*base_cmap(np.linspace(0.1, 0.75, n)),  # OrRd for values between 0.0 (exclusive) and 0.05
+			'darkred'  # Darkest red for values above 0.05
+		]
+		custom_cmap = mcolors.ListedColormap(colors)
+		boundaries = [0.0, 0.002] + list(np.round(np.linspace(0.0051, 0.05, n), 3)) + [0.4]
+		norm = mcolors.BoundaryNorm(boundaries, custom_cmap.N)
+		cmap = custom_cmap
+
 	elif property == "entropy":
-		cmap = plt.get_cmap('cubehelix', 8)
-		cmap = mcolors.ListedColormap(cmap(np.linspace(0.2, 1, 7))[:-1])
+		cmap = plt.get_cmap('tab20c', 8)
+		cmap = mcolors.ListedColormap(cmap(np.linspace(0.0, 0.8, 7))[:-1])
 		limit = -(1 / len(composition)) * np.log(1 / len(composition)) * len(composition)
 		norm = mcolors.Normalize(vmin=0, vmax=limit)
 	
@@ -72,22 +85,32 @@ def property_cbar(cmap, norm, ax, fontsize, property):
 	sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
 	sm.set_array([])  # We need this for colorbar to work
 	cbar = plt.colorbar(
-		sm, ax=ax, aspect=39, orientation="vertical", pad=0.1
+		sm, ax=ax, aspect=50, orientation="horizontal", pad=0.1
 	)
+	# cbar = plt.colorbar(
+	# 	sm, ax=ax, aspect = 100, orientation="horizontal"
+	# )
+	pos = cbar.ax.get_position()
+
+	# Modify width (increase `pos.width`) to make it **longer**
+	cbar.ax.set_position([pos.x0, pos.y0-0.01, pos.width, pos.height])
+
 	if property == "misc_T":
 		cbar.set_label("$T_{melt}$ - $T_{misc}$ (K)", fontsize=fontsize)
 	if property == 'e_hull':
+		cbar.ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.4])
 		cbar.set_label("$E_{hull}$ (eV/atom)", fontsize=fontsize)
 	if property == 'melt':
 		cbar.set_label("$T_{melt}$ (K)", fontsize=fontsize)
 	if property == 'entropy':
 		print("Entropy")
-		cbar.set_label("$-Entropy*k_b$", fontsize=fontsize+2)
+		cbar.set_label("$-Entropy/k_b$", fontsize=fontsize)
 	if property == 'elastic':
 		cbar.set_label("$E (GPa)$", fontsize=fontsize)
 	if property == 'density':
 		cbar.set_label("$\\rho (g/cc)$", fontsize=fontsize)
 	if property == 'gibbs':
 		cbar.set_label("$G_{mix} (meV/atom)$", fontsize=fontsize)
-	
-	plt.subplots_adjust(bottom=0.15, top=0.8)
+
+
+	# plt.subplots_adjust(bottom=0.15)

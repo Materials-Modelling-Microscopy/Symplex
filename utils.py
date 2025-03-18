@@ -102,7 +102,7 @@ def get_combinations(components, constraint_element_index):
 	return total + total_mirror
 
 
-def get_mol_grid(n, mol_gradation, constraint_element_index):
+def get_mol_grid(n, mol_gradation, constraint_element_index, replace):
 	components = [i for i in range(n)]
 	x = np.linspace(0, 1, mol_gradation)
 	
@@ -119,5 +119,11 @@ def get_mol_grid(n, mol_gradation, constraint_element_index):
 			x=x, n=n, N=len(temp_i), change_idx=temp_i
 		)
 		mol_dict[comp_str] = mol_grid
-	
+
+	if replace:
+		indices = replace
+		comp_str = '-'.join(map(str, indices))
+		mol_grid = create_mol_grid_transmutation(transmutation_indice=indices, n=n, x=x)
+		mol_dict[comp_str + '_replace'] = mol_grid
+
 	return mol_dict
