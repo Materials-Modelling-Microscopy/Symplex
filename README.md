@@ -7,7 +7,7 @@ Method to decompose high dimensional simplices into high symmetry paths for visu
 To use the code:
 
 ```python
-git 
+git clone https://github.com/Materials-Modelling-Microscopy/Symplex.git
 ```
 
 Install the requirements in a virtualenv:
