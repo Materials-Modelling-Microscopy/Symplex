@@ -12,7 +12,7 @@ git clone https://github.com/Materials-Modelling-Microscopy/Symplex.git
 
 Install the requirements in a virtualenv:
 ```python
-cd Symplex-main
+cd Symplex
 pip install -r requirements.txt
 ```
 An example notebook, example.ipynb has been provided with detailed instructions on how to plot pre-loaded properties and custom user data.
