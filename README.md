@@ -2,6 +2,8 @@
 
 Method to decompose high dimensional simplices into high symmetry paths for visualizing Multi Principal Element Alloys (MPEAs).
 
+Cite this work at https://arxiv.org/pdf/2504.03973
+
 ![Polar plot for Gibbs Free Energy for _ABCD_](./plots/A-B-C-D_None_gibbs.png)
 
 To use the code:
