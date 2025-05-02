@@ -3,7 +3,7 @@ import numpy as np
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 from maths import PolarMaths as pm
-from utils import get_mol_grid
+from utils import get_mol_grid, get_mol_grid_central
 from plot_utils import draw_circle_in_polar, scatter_center
 from property_utils import property_evaluator, cbar_property, property_cbar
 
@@ -239,13 +239,15 @@ def plot_circles_center(data, n, plot_grid, color_params, plot_params):
 	point1 = data[list(data.keys())[0]][0]
 	scatter_center(scatter=point1, ax=ax, cmap=cmap, norm=norm, y_bias=y_bias)
 
-def main(composition, plot_grid, constraint_element_index, subset_idx, replacement, custom_data, is_custom, property_str, cbar_hide, cbar_ax, fontsize = 10):
+def main(composition, plot_grid, constraint_element_index, subset_idx, replacement, custom_data, is_custom, property_str, cbar_hide, cbar_ax, central_point = None, fontsize = 10):
 
 	mol_gradation = 15
 	n = len(composition)
 
-	mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, replacement)
-
+	if central_point is None:
+		mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, replacement)
+	else:
+		mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, )
 	if is_custom and custom_data is not None:
 		data = custom_data
 	elif is_custom and custom_data is None:

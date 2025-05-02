@@ -25,12 +25,24 @@ def create_high_sym_mol_grid(
 	for mol in x:
 		addition = np.zeros(n)
 		addition += [(1 - mol) / n] * n
+		print(mol, addition)
 		for i in change_idx:
 			addition[i] = (1 / N - 1 / n) * mol + (1 / n)
 		mol_list.append(addition)
 	
 	return np.array(mol_list)
 
+def create_central_point_sym_mol_grid(
+		change_idx: List[int], x, n: int, N: int, central_point : Iterable
+) -> np.ndarray:
+
+	central_point = np.array(central_point)
+	assert len(central_point) == n
+	assert np.round(np.sum(central_point), 3) == 1.0
+
+	end_point = np.zeros_like(central_point)
+	end_point[change_idx] = np.round(1/N, 3)
+	return np.round(np.array([(1 - t) * central_point + t * end_point for t in x]), 3)
 
 def create_mol_grid_transmutation(
 		transmutation_indice: List[int], n: int, x: Iterable
@@ -112,6 +124,7 @@ def get_mol_grid(n, mol_gradation, constraint_element_index, replace):
 	assert len(total) == len(list(set(total_check)))
 	
 	mol_dict = {}
+	print(total)
 	for idx2, comp in enumerate(total):
 		temp_i = comp
 		comp_str = '-'.join(map(str, comp))
@@ -125,5 +138,27 @@ def get_mol_grid(n, mol_gradation, constraint_element_index, replace):
 		comp_str = '-'.join(map(str, indices))
 		mol_grid = create_mol_grid_transmutation(transmutation_indice=indices, n=n, x=x)
 		mol_dict[comp_str + '_replace'] = mol_grid
+
+	return mol_dict
+
+
+def get_mol_grid_central(n, central_point, mol_gradation, constraint_element_index):
+	components = [i for i in range(n)]
+	x = np.linspace(0, 1, mol_gradation)
+
+	total = get_combinations(components, constraint_element_index)
+
+	total_check = [''.join(map(str, i)) for i in total]
+	assert len(total) == len(list(set(total_check)))
+
+	mol_dict = {}
+	for idx2, comp in enumerate(total):
+		temp_i = comp
+		comp_str = '-'.join(map(str, comp))
+		mol_grid = create_central_point_sym_mol_grid(
+			central_point=central_point, x=x, n=n, N=len(temp_i), change_idx=temp_i
+		)
+		mol_dict[comp_str] = mol_grid
+
 
 	return mol_dict
