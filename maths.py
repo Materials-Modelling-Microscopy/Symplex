@@ -1,5 +1,5 @@
 import numpy as np
-from typing import Tuple, Union
+from typing import Tuple, Union, Iterable
 
 
 class PolarMaths:
@@ -97,6 +97,10 @@ class PolarMaths:
             raise ValueError("N must be smaller than n")
         # return 2 * 1 / np.sqrt(n - N)
         return np.sqrt(n - N)
+    
+    @staticmethod
+    def distance_calculator_special(central_point: Iterable, N: Iterable) -> float:
+        return np.sqrt(np.sum((np.array(central_point) - np.array(N)) ** 2))
 
     @staticmethod
     def total_num_bars(n: int) -> int:

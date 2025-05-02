@@ -1,3 +1,5 @@
+import pickle
+
 import matplotlib
 import numpy as np
 from matplotlib.patches import Rectangle
@@ -41,12 +43,12 @@ def color_params(cmap, norm):
 
 def plot_params(y_bias):
 	y_bias = y_bias
-	scaling_factor = 0.5
+	scaling_factor = 1
 	fontsize = 9
 	return y_bias, scaling_factor, fontsize
 
 
-def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace, mol_gradation):
+def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace, mol_gradation, central_point=None, ymax=None):
 	fig, ax = plot_grid
 	cmap, norm, line_colors = color_params
 	y_bias, scaling_factor, fontsize = plot_params
@@ -69,7 +71,14 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 	angle_replace = []
 	for idx, comp in enumerate(total):
 		
-		bar_length = pm.distance_calculator(n, len(comp)) * scaling_factor
+		if central_point is None:
+			bar_length = pm.distance_calculator(n, len(comp)) * scaling_factor
+		else:
+			print(comp)
+			comp_mol = np.zeros_like(central_point)
+			comp_mol[comp.astype(int)] = np.round(1 / len(comp), 3)
+			bar_length = pm.distance_calculator_special(central_point, comp_mol) * scaling_factor
+		
 		mol = x * bar_length
 		angle_radians = np.radians(angles[idx])
 		bar_width = np.radians(360 / (pm.total_num_bars(n) + 5) - 2)
@@ -89,24 +98,37 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 				height=outer_radius - inner_radius,  # Radial height of each segment
 				facecolor=cmap(norm(data[total_str[idx]][i + 1])),
 				edgecolor="black",
-				linewidth=0.5,  # No edge for a smooth gradient effect
+				linewidth=0.1,  # No edge for a smooth gradient effect
 				zorder=1
 			)
 			
 			# Add the rectangle to the polar plot
 			ax.add_patch(rect)
-
-		ax.vlines(
-			angle_radians,
-			ymin=y_bias,
-			ymax=(x * pm.distance_calculator(n, 1) * scaling_factor)[-1]
-				 + y_bias,
-			linestyles="-",
-			color=line_colors[len(comp) - 1],
-			zorder=0,
-			alpha=0.7,
-			linewidth=1.,
-		)
+		
+		if central_point is None:
+			# Draw the outer circle
+			ax.vlines(
+				angle_radians,
+				ymin=y_bias,
+				ymax=(x * pm.distance_calculator(n, 1) * scaling_factor)[-1]
+					 + y_bias,
+				linestyles="-",
+				color=line_colors[len(comp) - 1],
+				zorder=0,
+				alpha=0.7,
+				linewidth=1.,
+			)
+		else:
+			ax.vlines(
+				angle_radians,
+				ymin=y_bias,
+				ymax= ymax + y_bias,
+				linestyles="-",
+				color=line_colors[len(comp) - 1],
+				zorder=0,
+				alpha=0.7,
+				linewidth=1.,
+			)
 
 		if replace is not None:
 			# print(comp1, comp.astype(int))
@@ -144,12 +166,10 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 			)
 			ax.add_patch(rect)
 
-		
-
 	return total
 
 
-def plot_text(composition, total, plot_params, ax, n, mol_gradation):
+def plot_text(composition, total, plot_params, ax, n, mol_gradation, central_point=None, ymax = None):
 	angles = np.linspace(0, 2 * np.pi, len(total), endpoint=False)
 	y_bias, scaling_factor, fontsize = plot_params
 	x = np.linspace(0, 1, mol_gradation)
@@ -160,8 +180,12 @@ def plot_text(composition, total, plot_params, ax, n, mol_gradation):
 		composition = np.array(composition)
 		comp = comp.astype(int)
 		name = '-'.join(composition[comp])
-		radius = (x * pm.distance_calculator(n, 1) * scaling_factor)[-1]+ 1.1*y_bias
-
+		
+		if central_point is None:
+			radius = (x * pm.distance_calculator(n, 1) * scaling_factor)[-1]+ 1.1*y_bias
+		else:
+			radius = ymax + 1.1*y_bias
+			
 		if '-' in name:
 			if 90 < angle_deg < 270:
 				ax.text(
@@ -228,18 +252,35 @@ def plot_text(composition, total, plot_params, ax, n, mol_gradation):
 				)
 
 
-def plot_circles_center(data, n, plot_grid, color_params, plot_params):
+def plot_circles_center(data, n, plot_grid, color_params, plot_params, central_point=None):
 	fig, ax = plot_grid
 	cmap, norm, line_colors = color_params
 	y_bias, scaling_factor, fontsize = plot_params
 	
 	for N in range(1, n):
-		draw_circle_in_polar(radius=pm.distance_calculator(n, N) * 0.5, ax=ax, y_bias=y_bias)
+		if central_point is None:
+			draw_circle_in_polar(radius=pm.distance_calculator(n, N) * scaling_factor, ax=ax, y_bias=y_bias)
+		else:
+			continue
+			# comp_mol = np.zeros_like(central_point)
+			# comp_molN = np.round(1 / N, 3)
+			# draw_circle_in_polar(radius=pm.distance_calculator_special(central_point, N)*scaling_factor, ax=ax, y_bias=y_bias)
 	
 	point1 = data[list(data.keys())[0]][0]
 	scatter_center(scatter=point1, ax=ax, cmap=cmap, norm=norm, y_bias=y_bias)
 
-def main(composition, plot_grid, constraint_element_index, subset_idx, replacement, custom_data, is_custom, property_str, cbar_hide, cbar_ax, central_point = None, fontsize = 10):
+def main(composition,
+		 plot_grid,
+		 constraint_element_index,
+		 custom_data,
+		 is_custom,
+		 property_str,
+		 cbar_hide,
+		 cbar_ax,
+		 central_point = None,
+		 fontsize = 10,
+		 subset_idx = None,
+		 replacement = None):
 
 	mol_gradation = 15
 	n = len(composition)
@@ -247,7 +288,7 @@ def main(composition, plot_grid, constraint_element_index, subset_idx, replaceme
 	if central_point is None:
 		mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, replacement)
 	else:
-		mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, )
+		mol_dict = get_mol_grid_central(n, central_point, mol_gradation, constraint_element_index)
 	if is_custom and custom_data is not None:
 		data = custom_data
 	elif is_custom and custom_data is None:
@@ -257,59 +298,62 @@ def main(composition, plot_grid, constraint_element_index, subset_idx, replaceme
 		data = get_data(mol_dict, property_str, composition)
 
 	# plot_grid = set_plot_grid()
+	
 	color_param = color_params(*cbar_property(property_str, composition))
 	plot_param = list(plot_params(y_bias=0.4))
 	plot_param[2] = fontsize
 	matplotlib.rcParams.update({'font.size': plot_param[2]})
-	total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement, mol_gradation)
-	plot_text(composition, total, plot_param, plot_grid[1], n, mol_gradation)
-	plot_circles_center(data, n, plot_grid, color_param, plot_param)
+	if central_point is None:
+		total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement, mol_gradation)
+		plot_text(composition, total, plot_param, plot_grid[1], n, mol_gradation)
+		plot_circles_center(data, n, plot_grid, color_param, plot_param)
+		
+	else:
+		y_max = 0
+		for keys in mol_dict.values():
+			
+			radii = pm.distance_calculator_special(central_point, keys[-1])
+			y_max = max(y_max, radii)
+		
+		
+		total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement, mol_gradation,
+						  central_point=central_point, ymax=y_max)
+		plot_text(composition, total, plot_param, plot_grid[1], n, mol_gradation, central_point=central_point, ymax=y_max)
+		plot_circles_center(data, n, plot_grid, color_param, plot_param, central_point=central_point)
+		title = list(zip(composition, central_point))
+		# plot_grid[1].set_title(''.join([f'${key}' +'_{' +  str(value) + "}$" for key, value in title]), x = -0.25, y = 1.05, fontsize = fontsize)
+	
 	if not cbar_hide:
 		property_cbar(color_param[0], color_param[1], cbar_ax, plot_param[2], property_str)
 
-	# composition_name = '-'.join(composition)
-	# plt.savefig(f"plots/{composition_name}_{str(subset_idx)}_{str(replacement)}{property_str}.png", dpi=200,
-	# 			bbox_inches='tight')
 
-
-# if __name__ == "__main__":
+# composition = ['A', 'B', 'C', 'D'] #arbitary elements work only for gibbs
+# constraint_element_index = None
+# property_str = 'gibbs'
+# subset_idx = None
+# replacement = None
+# custom_data = None
+# is_custom = False
 #
-# 	# mol_gradation = 15
-# 	composition = ['A', 'B', 'C', 'D']
-# 	constraint_element_index = None
-# 	property_str = 'gibbs'
-# 	subset_idx = [2]
-# 	replacement = None
-# 	custom_data = None
-# 	is_custom = False
-# 	plot_grid = set_plot_grid()
-# 	main(composition, plot_grid, constraint_element_index, subset_idx, replacement, custom_data, is_custom, property_str)
-	# n = len(composition)
-	# constraint_element_index = None
-	# property_str = 'gibbs'
-	# subset_idx = [2]
-	# replacement = None
-	# custom_data = None
-	# is_custom = False
-	# mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, replacement)
-	# # print(mol_dict)
-	# # if adding custom data, use mol_dict for populating the data with same format as mol_dict
-	# if is_custom and custom_data is not None:
-	# 	data = custom_data
-	# elif is_custom and custom_data is None:
-	# 	raise ValueError("Custom data is set to True but no data was provided.")
-	# else:
-	# 	data = get_data(mol_dict, property_str, composition)
-	# print(data['2-3'], data['0-1'])
-	# print(data['0-2-3'], data['1'])
-	# # print(data['2-3_replace'])
-	# plot_grid = set_plot_grid()
-	# color_param = color_params(*cbar_property(property_str, composition))
-	# plot_param = plot_params(y_bias=0.4)
-	# matplotlib.rcParams.update({'font.size': plot_param[2]})
-	# total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement)
-	# plot_text(composition, total, plot_param, plot_grid[1])
-	# plot_circles_center(data, n, plot_grid, color_param, plot_param)
-	# property_cbar(color_param[0], color_param[1], plot_grid[1], plot_param[2], property_str)
-	# composition_name = '-'.join(composition)
-	# plt.savefig(f"plots/{composition_name}_{str(subset_idx)}_{str(replacement)}{property_str}.png", dpi = 200, bbox_inches='tight')
+# fig = plt.figure(figsize=(7.48, 5))
+# ax1 = fig.add_subplot(projection='polar')
+# ax1.set_yticks([])
+# ax1.set_xticks([])
+# ax1.spines["polar"].set_visible(False)
+# ax1.grid(False)
+#
+# plot_grid = fig, ax1
+# main(composition = composition,
+# 	 plot_grid = plot_grid,
+# 	 constraint_element_index = constraint_element_index,
+# 	 custom_data = custom_data,
+# 	 is_custom = is_custom,
+# 	 property_str = property_str,
+# 	 cbar_hide=False,
+# 	 cbar_ax=ax1,
+# 	 fontsize = 14,
+# 	 central_point=[0.8, 0.09, 0.1, 0.01])
+#
+# composition_name = '-'.join(composition)
+# plt.savefig(f"plots/{composition_name}_{str(subset_idx)}_{str(replacement)}{property_str}.png", dpi=200,
+# 			bbox_inches='tight')

@@ -124,7 +124,6 @@ def get_mol_grid(n, mol_gradation, constraint_element_index, replace):
 	assert len(total) == len(list(set(total_check)))
 	
 	mol_dict = {}
-	print(total)
 	for idx2, comp in enumerate(total):
 		temp_i = comp
 		comp_str = '-'.join(map(str, comp))
