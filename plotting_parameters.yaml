@@ -1,0 +1,84 @@
+---
+y_bias: 0.4
+scaling_factor: 1
+fontsize: 9
+mol_gradation: 15
+bar_line_edgecolor: 'black'
+bar_linewidth: 0.5
+vline_alpha : 0.7
+vline_linewidth: 1.0
+replace_rect_height: 0.06
+replace_radius_bias: 0.06
+fontname: 'Helvetica'
+fontcolor: 'black'
+composition_fontcolor: '#BB5566'
+---
+circle_linewidth: 0.8
+circle_alpha: 0.1
+circle_color: "black"
+center_edgecolor: 'black'
+center_linewidth: 2
+center_alpha: 1
+center_bias: 0.025
+---
+cbar:
+  y_shift: -0.01
+  aspect: 50
+  pad : 0.1
+  x_shift: 0.0
+  width_shift: 0.0
+  height_shift: 0.0
+  orientation: 'horizontal'
+gibbs:
+  cmap_color: 'coolwarm'
+  cmap_n_colors: 10
+  norm_max_bound: -50
+  norm_min_bound: 50
+  cmap_max_bound: 1.0
+  cmap_min_bound: 0.0
+  label: "$G_{mix} (meV/atom)$"
+e_hull:
+  cmap_color: 'OrRd'
+  cmap_n_colors: 10
+  stable_color: '#009988'
+  cmap_max_bound: 0.75
+  cmap_min_bound: 0.1
+  unstable_color: 'darkred'
+  stable_bound: 0.002
+  metastable_bound: 0.05
+  max_bound: 0.4
+  label: "$E_{hull}$ (eV/atom)"
+phase_boundary:
+  miscible_color: '#009988'
+  immiscible_color: 'salmon'
+  stable_bound: 0.005
+  max_bound: 0.4
+  label: "$E_{hull}$ (eV/atom)"
+entropy:
+  cmap_color: 'tab20c'
+  cmap_n_colors: 8
+  cmap_max_bound: 0.8
+  cmap_min_bound: 0.0
+  label: "$-Entropy/k_b$"
+melt:
+  cmap_color: 'plasma'
+  max_bound: 3700
+  label: "$T_{melt}$ (K)"
+density:
+  cmap_color: 'jet'
+  cmap_n_colors: 8
+  cmap_max_bound: 1.0
+  cmap_min_bound: 0.2
+  norm_min_bound: 7
+  norm_max_bound: 9
+  label: "$\\rho (g/cc)$"
+elastic:
+  cmap_color: 'jet'
+  norm_min_bound: 100
+  norm_max_bound: 300
+  label: "$E (GPa)$"
+
+
+
+
+

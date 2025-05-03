@@ -1,9 +1,16 @@
 from itertools import combinations
 import numpy as np
 from typing import List, Iterable
+import yaml
+#load yaml
+
+def load_properties_yaml():
+	file_path = "./plotting_parameters.yaml"
 
 
-#creation of various mol_grids
+	with open(file_path,'r') as input_file:
+		return list(yaml.safe_load_all(input_file))
+
 
 def create_high_sym_mol_grid(
 		change_idx: List[int], x: Iterable, n: int, N: int

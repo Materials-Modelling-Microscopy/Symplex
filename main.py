@@ -74,7 +74,6 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 		if central_point is None:
 			bar_length = pm.distance_calculator(n, len(comp)) * scaling_factor
 		else:
-			print(comp)
 			comp_mol = np.zeros_like(central_point)
 			comp_mol[comp.astype(int)] = np.round(1 / len(comp), 3)
 			bar_length = pm.distance_calculator_special(central_point, comp_mol) * scaling_factor
@@ -98,7 +97,7 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 				height=outer_radius - inner_radius,  # Radial height of each segment
 				facecolor=cmap(norm(data[total_str[idx]][i + 1])),
 				edgecolor="black",
-				linewidth=0.1,  # No edge for a smooth gradient effect
+				linewidth=0.0,  # No edge for a smooth gradient effect
 				zorder=1
 			)
 			
@@ -110,7 +109,7 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 			ax.vlines(
 				angle_radians,
 				ymin=y_bias,
-				ymax=(x * pm.distance_calculator(n, 1) * scaling_factor)[-1]
+				ymax=pm.distance_calculator(n, 1) * scaling_factor
 					 + y_bias,
 				linestyles="-",
 				color=line_colors[len(comp) - 1],
@@ -182,7 +181,7 @@ def plot_text(composition, total, plot_params, ax, n, mol_gradation, central_poi
 		name = '-'.join(composition[comp])
 		
 		if central_point is None:
-			radius = (x * pm.distance_calculator(n, 1) * scaling_factor)[-1]+ 1.1*y_bias
+			radius = pm.distance_calculator(n, 1) * scaling_factor+ 1.1*y_bias
 		else:
 			radius = ymax + 1.1*y_bias
 			
@@ -260,11 +259,7 @@ def plot_circles_center(data, n, plot_grid, color_params, plot_params, central_p
 	for N in range(1, n):
 		if central_point is None:
 			draw_circle_in_polar(radius=pm.distance_calculator(n, N) * scaling_factor, ax=ax, y_bias=y_bias)
-		else:
-			continue
-			# comp_mol = np.zeros_like(central_point)
-			# comp_molN = np.round(1 / N, 3)
-			# draw_circle_in_polar(radius=pm.distance_calculator_special(central_point, N)*scaling_factor, ax=ax, y_bias=y_bias)
+
 	
 	point1 = data[list(data.keys())[0]][0]
 	scatter_center(scatter=point1, ax=ax, cmap=cmap, norm=norm, y_bias=y_bias)

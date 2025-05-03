@@ -1,6 +1,8 @@
 import matplotlib.pyplot as plt
 import numpy as np
+from utils import load_properties_yaml
 
+property_yaml = load_properties_yaml()[1]
 
 def draw_circle_in_polar(radius: float, ax: plt.Axes, y_bias) -> None:
 	"""

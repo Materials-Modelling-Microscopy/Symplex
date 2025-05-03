@@ -179,6 +179,6 @@ mol_grid = main(composition=composition,
 				fontsize = 9,
 				central_point=central_point)
 
-plt.savefig("./fig5_revised.png", dpi = 200)
+plt.savefig("./fig5_revised_trial.png", dpi = 200)
 
 

@@ -1,8 +1,10 @@
-import matplotlib
 import numpy as np
 import matplotlib.pyplot as plt
 from pymatgen.core import Element
 import matplotlib.colors as mcolors
+from utils import load_properties_yaml
+
+property_yaml = load_properties_yaml()[-1]
 
 
 def property_evaluator(mol, property, composition):
@@ -35,82 +37,88 @@ def property_evaluator(mol, property, composition):
 
 
 def cbar_property(property, composition):
+	property_meta_data = property_yaml[property]
+
 	if property == "gibbs":
-		base_cmap = plt.get_cmap('coolwarm')
-		n = 10
+		base_cmap = plt.get_cmap(property_meta_data['cmap_color'])
+		n = property_meta_data['cmap_n_colors']
 		colors = [
-			*base_cmap(np.linspace(0, 1, n))
+			*base_cmap(np.linspace(property_meta_data["cmap_min_bound"],property_meta_data["cmap_max_bound"] , n))
 		]
 		custom_cmap = mcolors.ListedColormap(colors)
 		cmap = custom_cmap
-		boundaries = list(np.round(np.linspace(-50, 50, n), 0))
+		boundaries = list(np.round(np.linspace(property_meta_data["norm_min_bound"], property_meta_data["norm_max_bound"], n), 0))
 		norm = mcolors.BoundaryNorm(boundaries, cmap.N)
 
 	elif property == 'e_hull':
-		base_cmap = plt.get_cmap('OrRd')
-		n = 10
+
+		base_cmap = plt.get_cmap(property_meta_data['cmap_color'])
+		n = property_meta_data['cmap_n_colors']
 		colors = [
-			'#009988',  # Dark blue for 0
-			*base_cmap(np.linspace(0.1, 0.75, n)),  # OrRd for values between 0.0 (exclusive) and 0.05
-			'darkred'  # Darkest red for values above 0.05
+			property_meta_data['stable_color'],
+			*base_cmap(np.linspace(property_meta_data["cmap_min_bound"],property_meta_data["cmap_max_bound"], n)),
+			property_meta_data['unstable_color']
 		]
-		custom_cmap = mcolors.ListedColormap(colors)
-		boundaries = [0.0, 0.002] + list(np.round(np.linspace(0.0051, 0.05, n), 3)) + [0.4]
-		norm = mcolors.BoundaryNorm(boundaries, custom_cmap.N)
-		cmap = custom_cmap
+
+		cmap = mcolors.ListedColormap(colors)
+		boundaries = ([0.0,
+					  property_meta_data["stable_bound"]] +
+					  list(np.round(np.linspace(property_meta_data["stable_bound"]* 1.001,
+																					  property_meta_data["metastable_bound"], n), 3))
+					  + [property_meta_data["max_bound"]])
+		norm = mcolors.BoundaryNorm(boundaries, cmap.N)
+
+	elif property == 'phase_boundary':
+
+		colors = [
+			property_meta_data['miscible_color'],
+			property_meta_data['immiscible_color'],
+
+		]
+
+		boundaries = [0.0, property_meta_data["stable_bound"], property_meta_data["max_bound"]]
+		cmap = mcolors.ListedColormap(colors)
+		norm = mcolors.BoundaryNorm(boundaries, len(colors))
 
 	elif property == "entropy":
-		cmap = plt.get_cmap('tab20c', 8)
-		cmap = mcolors.ListedColormap(cmap(np.linspace(0.0, 0.8, 7))[:-1])
+		n = property_meta_data['cmap_n_colors']
+		cmap = plt.get_cmap(property_meta_data['cmap_color'], n)
+		cmap = mcolors.ListedColormap(cmap(np.linspace(property_meta_data["cmap_min_bound"],property_meta_data["cmap_max_bound"], n-1))[:-1])
 		limit = -(1 / len(composition)) * np.log(1 / len(composition)) * len(composition)
 		norm = mcolors.Normalize(vmin=0, vmax=limit)
 	
 	elif property == "melt":
 		t_min = np.min([Element(i).melting_point for i in composition])
-		cmap = plt.get_cmap('plasma')
-		norm = mcolors.Normalize(vmin=t_min, vmax=3700)
+		cmap = plt.get_cmap(property_meta_data['cmap_color'])
+		norm = mcolors.Normalize(vmin=t_min, vmax=property_meta_data["max_bound"])
 	
 	elif property == "density":
-		cmap = plt.get_cmap('jet', 8)
-		cmap = mcolors.ListedColormap(cmap(np.linspace(0.2, 1, 7))[:-1])
-		norm = mcolors.Normalize(vmin=7, vmax=9)
+		n = property_meta_data['cmap_n_colors']
+		cmap = plt.get_cmap(property_meta_data['cmap_color'], n)
+		cmap = mcolors.ListedColormap(cmap(np.linspace(property_meta_data["cmap_min_bound"],property_meta_data["cmap_max_bound"], n-1))[:-1])
+		norm = mcolors.Normalize(vmin=property_meta_data["norm_min_bound"], vmax=property_meta_data["norm_max_bound"])
 	elif property == "elastic":
-		cmap = plt.get_cmap('jet')
-		norm = mcolors.Normalize(vmin=100, vmax=300)
+		cmap = plt.get_cmap(property_meta_data['cmap_color'])
+		norm = mcolors.Normalize(vmin=property_meta_data["norm_min_bound"], vmax=property_meta_data["norm_max_bound"])
 	
 	return cmap, norm
 
 
 def property_cbar(cmap, norm, ax, fontsize, property):
 	sm = plt.cm.ScalarMappable(cmap=cmap, norm=norm)
-	sm.set_array([])  # We need this for colorbar to work
+	sm.set_array([])
+	cbar_properties = property_yaml['cbar']
 	cbar = plt.colorbar(
-		sm, ax=ax, aspect=50, orientation="horizontal", pad=0.1
+		sm, ax=ax, aspect=cbar_properties['aspect'], orientation=cbar_properties['orientation'], pad=cbar_properties['pad']
 	)
-	# cbar = plt.colorbar(
-	# 	sm, ax=ax, aspect = 100, orientation="horizontal"
-	# )
 	pos = cbar.ax.get_position()
 
-	# Modify width (increase `pos.width`) to make it **longer**
-	cbar.ax.set_position([pos.x0, pos.y0-0.01, pos.width, pos.height])
+	cbar.ax.set_position([pos.x0 + cbar_properties['x_shift'],
+						  pos.y0 + cbar_properties['y_shift'],
+						  pos.width + cbar_properties['width_shift'] ,
+						  pos.height + cbar_properties['height_shift']])
 
-	if property == "misc_T":
-		cbar.set_label("$T_{melt}$ - $T_{misc}$ (K)", fontsize=fontsize)
 	if property == 'e_hull':
-		cbar.ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.4])
-		cbar.set_label("$E_{hull}$ (eV/atom)", fontsize=fontsize)
-	if property == 'melt':
-		cbar.set_label("$T_{melt}$ (K)", fontsize=fontsize)
-	if property == 'entropy':
-		print("Entropy")
-		cbar.set_label("$-Entropy/k_b$", fontsize=fontsize)
-	if property == 'elastic':
-		cbar.set_label("$E (GPa)$", fontsize=fontsize)
-	if property == 'density':
-		cbar.set_label("$\\rho (g/cc)$", fontsize=fontsize)
-	if property == 'gibbs':
-		cbar.set_label("$G_{mix} (meV/atom)$", fontsize=fontsize)
+		cbar.ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.4]) # bit of hardcoding
 
-
-	# plt.subplots_adjust(bottom=0.15)
+	cbar.set_label(property_yaml[property]['label'], fontsize = fontsize)
