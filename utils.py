@@ -2,11 +2,10 @@ from itertools import combinations
 import numpy as np
 from typing import List, Iterable
 import yaml
-#load yaml
+
 
 def load_properties_yaml():
-	file_path = "./plotting_parameters.yaml"
-
+	file_path = "/Users/pravanomprakash/Documents/Projects/Symplex/plotting_parameters.yaml"
 
 	with open(file_path,'r') as input_file:
 		return list(yaml.safe_load_all(input_file))
@@ -15,19 +14,7 @@ def load_properties_yaml():
 def create_high_sym_mol_grid(
 		change_idx: List[int], x: Iterable, n: int, N: int
 ) -> np.ndarray:
-	"""
-	Create a high-symmetry mole fraction grid based on the provided indices.
-
-	Args:
-			change_idx (List[int]): Indices of the components to modify in the grid.
-			x (Iterable): List of mole fractions to use for the grid.
-			n (int): The total number of components in the system.
-			N (int): The number of components to symmetrically modify.
-
-	Returns:
-			np.ndarray: A 2D array where each row represents a high-symmetry configuration
-									of the components.
-	"""
+	
 	mol_list = []
 	for mol in x:
 		addition = np.zeros(n)
@@ -54,18 +41,7 @@ def create_central_point_sym_mol_grid(
 def create_mol_grid_transmutation(
 		transmutation_indice: List[int], n: int, x: Iterable
 ) -> np.ndarray:
-	"""
-	Create a mole fraction grid with transmutation between two components.
-
-	Args:
-			transmutation_indice (List[int]): Indices of the components undergoing transmutation.
-			n (int): The total number of components in the system.
-			x ( Iterable): List of mole fractions for transmutation.
-
-	Returns:
-			np.ndarray: A 2D array where each row represents a configuration with
-									transmuted mole fractions between two components.
-	"""
+	
 	mols = []
 	for i in x:
 		subtract = np.zeros(n)
@@ -78,24 +54,7 @@ def create_mol_grid_transmutation(
 
 
 def find_indices(main_list: list, subset: list) -> list:
-	"""
-	Finds the indices of the `subset` elements in the `main_list`. If a value in the subset is not found,
-	returns `None` for that value's index.
-
-	Args:
-			main_list (list): The list to search within.
-			subset (list): The list of values whose indices are to be found in the main list.
-
-	Returns:
-			list: A list of indices corresponding to the subset elements in the main list. If an element is not found, `None` is returned in its place.
-
-	Example::
-
-			main_list = ['a', 'b', 'c', 'd']
-			subset = ['b', 'd', 'x']
-			result = FancyListExtractions.find_indices(main_list, subset)
-			# Output: [1, 3, None]
-	"""
+	
 	indices = []
 	for value in subset:
 		try:

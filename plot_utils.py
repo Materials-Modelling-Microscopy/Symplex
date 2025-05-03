@@ -5,47 +5,33 @@ from utils import load_properties_yaml
 property_yaml = load_properties_yaml()[1]
 
 def draw_circle_in_polar(radius: float, ax: plt.Axes, y_bias) -> None:
-	"""
-	Draws a circle with the given radius on a polar plot.
 
-	Args:
-		radius (float): The radius of the circle.
-		ax (plt.Axes): The polar plot axes on which the circle is drawn.
-	"""
 	theta = np.linspace(0, 2 * np.pi, 100)
 	ax.plot(
 		theta,
 		[radius + y_bias] * len(theta),
-		linewidth=0.8,
+		linewidth= property_yaml["circle_linewidth"],
 		zorder=0,
-		color="black",
+		color=property_yaml["circle_color"],
 		linestyle="--",
-		alpha=0.1,
+		alpha=property_yaml["circle_alpha"],
 	)
 	
 def scatter_center(scatter: float, ax: plt.Axes, cmap, norm, y_bias) -> None:
-	"""
-	Plots the central scatter point in a polar plot.
-
-	Args:
-		scatter (float): The value to normalize the color of the scatter point.
-		ax (plt.Axes): The polar plot axes.
-	"""
 	
 	theta = np.linspace(0, 2 * np.pi, 100)
-	# self.draw_circle_in_polar(radius=self.y_bias, ax=ax)
 	ax.plot(
 		theta,
-		[y_bias - 0.025] * len(theta),
-		linewidth=2,
+		[y_bias - property_yaml["center_bias"]] * len(theta),
+		linewidth=property_yaml["center_linewidth"],
 		zorder=100,
-		color="black",
+		color=property_yaml["center_edgecolor"],
 		linestyle="-",
-		alpha=1,
+		alpha=property_yaml["center_alpha"],
 	)
 	ax.fill(
 		theta,
-		[y_bias - 0.025] * len(theta),
+		[y_bias - property_yaml["center_bias"]] * len(theta),
 		zorder=100,
 		color=cmap(norm(scatter)),
 		alpha=1,

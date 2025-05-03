@@ -1,14 +1,13 @@
-import pickle
-
 import matplotlib
 import numpy as np
 from matplotlib.patches import Rectangle
 import matplotlib.pyplot as plt
 from maths import PolarMaths as pm
-from utils import get_mol_grid, get_mol_grid_central
+from utils import get_mol_grid, get_mol_grid_central, load_properties_yaml
 from plot_utils import draw_circle_in_polar, scatter_center
 from property_utils import property_evaluator, cbar_property, property_cbar
 
+property_yaml = load_properties_yaml()[0]
 
 def get_data(mol_dict, property_str, composition):
 	data = {}
@@ -41,31 +40,24 @@ def color_params(cmap, norm):
 	return cmap, norm, line_colors
 
 
-def plot_params(y_bias):
-	y_bias = y_bias
-	scaling_factor = 1
-	fontsize = 9
+def plot_params():
+	y_bias = property_yaml['y_bias']
+	scaling_factor = property_yaml['scaling_factor']
+	fontsize = property_yaml['fontsize']
 	return y_bias, scaling_factor, fontsize
 
 
-def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace, mol_gradation, central_point=None, ymax=None):
+def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace, central_point=None, ymax=None):
 	fig, ax = plot_grid
 	cmap, norm, line_colors = color_params
 	y_bias, scaling_factor, fontsize = plot_params
 	
-	x = np.linspace(0, 1, mol_gradation)
+	x = np.linspace(0, 1, property_yaml['mol_gradation'])
 	total_str, total = get_components(data)
-	# print(total_str, total)
 	if subset_idx is not None:
 		total_idx = [idx for idx, i in enumerate(total) if len(i) in subset_idx]
 		total = [total[i] for i in total_idx]
 		total_str = [total_str[i] for i in total_idx]
-
-	if replace is not None:
-		comp1 = np.array([i for i in list(range(n)) if i != replace[1]]).astype(int)
-		comp2 = np.array([i for i in list(range(n)) if i != replace[0]]).astype(int)
-
-		# print(comp1, comp2, total)
 
 	angles = pm.divide_circle_degrees(len(total))
 	angle_replace = []
@@ -82,7 +74,6 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 		angle_radians = np.radians(angles[idx])
 		bar_width = np.radians(360 / (pm.total_num_bars(n) + 5) - 2)
 		for i in range(len(mol) - 1):
-			# Define the start and end of each radial segment
 			if i == 0:
 				inner_radius = mol[i] + y_bias
 			else:
@@ -90,22 +81,19 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 			
 			outer_radius = mol[i + 1] + y_bias
 			
-			# Create a rectangle to represent each segment in the bar
 			rect = Rectangle(
 				(angle_radians - bar_width / 2, inner_radius),  # (theta, r) starting point
 				width=bar_width,  # Width in radians (angle)
 				height=outer_radius - inner_radius,  # Radial height of each segment
 				facecolor=cmap(norm(data[total_str[idx]][i + 1])),
-				edgecolor="black",
-				linewidth=0.0,  # No edge for a smooth gradient effect
+				edgecolor=property_yaml['bar_line_edgecolor'],  # Edge color for the rectangle
+				linewidth=property_yaml['bar_linewidth'],  # No edge for a smooth gradient effect
 				zorder=1
 			)
 			
-			# Add the rectangle to the polar plot
 			ax.add_patch(rect)
 		
 		if central_point is None:
-			# Draw the outer circle
 			ax.vlines(
 				angle_radians,
 				ymin=y_bias,
@@ -114,8 +102,8 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 				linestyles="-",
 				color=line_colors[len(comp) - 1],
 				zorder=0,
-				alpha=0.7,
-				linewidth=1.,
+				alpha=property_yaml['vline_alpha'],
+				linewidth=property_yaml['vline_linewidth'],
 			)
 		else:
 			ax.vlines(
@@ -125,57 +113,53 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 				linestyles="-",
 				color=line_colors[len(comp) - 1],
 				zorder=0,
-				alpha=0.7,
-				linewidth=1.,
+				alpha=property_yaml['vline_alpha'],
+				linewidth=property_yaml['vline_linewidth'],
 			)
 
 		if replace is not None:
-			# print(comp1, comp.astype(int))
+			comp1 = np.array([i for i in list(range(n)) if i != replace[1]]).astype(int)
+			comp2 = np.array([i for i in list(range(n)) if i != replace[0]]).astype(int)
 			if str(comp.astype(int)) == str(comp1):
 				angle_replace.append(np.radians(angles[idx]))
 			if str(comp.astype(int)) == str(comp2):
 				angle_replace.append(np.radians(angles[idx]))
 
 	if replace is not None:
-		rect_height = 0.06
-		# angle_replace = sorted(angle_replace)
-		# print(angle_replace)
+		rect_height = property_yaml['replace_rect_height']
 		data_replace = data['-'.join(map(str, replace)) + '_replace']
 		n_segments = len(data_replace)
 		angles = np.linspace(angle_replace[1], angle_replace[0], n_segments + 1)
 		# rect_height =
 		bar_length = pm.distance_calculator(n, len(comp1)) * scaling_factor
 		mol = x * bar_length
-		radius = mol[-1] + y_bias + 0.06
+		radius = mol[-1] + y_bias + property_yaml['replace_radius_bias']
 		for idx in range(n_segments):
-				# Midpoint angle for each rectangle
 			angle = (angles[idx] + angles[idx + 1]) / 2
 			theta_diff = angles[idx + 1] - angles[idx]
 
 			color = cmap(norm(data_replace[idx]))
 
 			rect = Rectangle(
-				xy=(angle - theta_diff, radius - rect_height),  # (angle_start, radius_start)
+				xy=(angle - theta_diff, radius - rect_height),
 				width=theta_diff,
 				height=rect_height,
 				facecolor=color,
-				edgecolor='black',
+				edgecolor=property_yaml['bar_line_edgecolor'],
 				zorder=0,
-				linewidth=1
+				linewidth=property_yaml['bar_linewidth'],
 			)
 			ax.add_patch(rect)
 
 	return total
 
 
-def plot_text(composition, total, plot_params, ax, n, mol_gradation, central_point=None, ymax = None):
+def plot_text(composition, total, plot_params, ax, n, central_point=None, ymax = None):
 	angles = np.linspace(0, 2 * np.pi, len(total), endpoint=False)
 	y_bias, scaling_factor, fontsize = plot_params
-	x = np.linspace(0, 1, mol_gradation)
 	for idx, comp in enumerate(total):
 		angle_deg = np.degrees(angles[idx])
 		rotation = angle_deg + 180 if 90 < angle_deg < 270 else angle_deg
-		# angle_radians = np.radians(angles[idx])
 		composition = np.array(composition)
 		comp = comp.astype(int)
 		name = '-'.join(composition[comp])
@@ -184,71 +168,24 @@ def plot_text(composition, total, plot_params, ax, n, mol_gradation, central_poi
 			radius = pm.distance_calculator(n, 1) * scaling_factor+ 1.1*y_bias
 		else:
 			radius = ymax + 1.1*y_bias
-			
-		if '-' in name:
-			if 90 < angle_deg < 270:
-				ax.text(
-					angles[idx],
-					radius,
-					name,
-					ha="right",
-					va="center",
-					color="black",
-					rotation=rotation,
-					rotation_mode="anchor",
-					fontsize=fontsize,
-					transform=ax.transData,
-					fontname = "Helvetica"
-				)
-			else:
-
-				ax.text(
-					angles[idx],
-					radius,
-					name,
-					ha="left",
-					va="center",
-					color="black",
-					rotation=rotation,
-					rotation_mode="anchor",
-					fontsize=fontsize,
-					transform=ax.transData,
-					fontname = "Helvetica"
-				)
-
-
-		else:
-			if 90 < angle_deg < 270:
-				ax.text(
-					angles[idx],
-					radius,
-					name,
-					ha="right",
-					va="center",
-					color="#BB5566",
-					fontweight="bold",
-					rotation=rotation,
-					rotation_mode="anchor",
-					fontsize=fontsize,
-					transform=ax.transData,
-					fontname = "Helvetica"
-				)
-			else:
-
-				ax.text(
-					angles[idx],
-					radius,
-					name,
-					ha="left",
-					va="center",
-					color="#BB5566",
-					fontweight="bold",
-					rotation=rotation,
-					rotation_mode="anchor",
-					fontsize=fontsize,
-					transform=ax.transData,
-					fontname = "Helvetica"
-				)
+		
+		fontweight = 'bold' if '-' in name else 'normal'
+		ha = "right" if 90 < angle_deg < 270 else "left"
+		color = property_yaml['composition_fontcolor'] if '-' not in name else property_yaml['fontcolor']
+		ax.text(
+			angles[idx],
+			radius,
+			name,
+			ha=ha,
+			va="center",
+			color=color,
+			rotation=rotation,
+			rotation_mode="anchor",
+			fontweight=fontweight,
+			fontsize=property_yaml['fontsize'],
+			transform=ax.transData,
+			fontname = property_yaml['fontname']
+		)
 
 
 def plot_circles_center(data, n, plot_grid, color_params, plot_params, central_point=None):
@@ -260,30 +197,27 @@ def plot_circles_center(data, n, plot_grid, color_params, plot_params, central_p
 		if central_point is None:
 			draw_circle_in_polar(radius=pm.distance_calculator(n, N) * scaling_factor, ax=ax, y_bias=y_bias)
 
-	
 	point1 = data[list(data.keys())[0]][0]
 	scatter_center(scatter=point1, ax=ax, cmap=cmap, norm=norm, y_bias=y_bias)
 
 def main(composition,
 		 plot_grid,
 		 constraint_element_index,
-		 custom_data,
-		 is_custom,
 		 property_str,
 		 cbar_hide,
 		 cbar_ax,
+		 custom_data = None,
+		 is_custom = None,
 		 central_point = None,
-		 fontsize = 10,
 		 subset_idx = None,
 		 replacement = None):
 
-	mol_gradation = 15
 	n = len(composition)
 
 	if central_point is None:
-		mol_dict = get_mol_grid(n, mol_gradation, constraint_element_index, replacement)
+		mol_dict = get_mol_grid(n, property_yaml['mol_gradation'], constraint_element_index, replacement)
 	else:
-		mol_dict = get_mol_grid_central(n, central_point, mol_gradation, constraint_element_index)
+		mol_dict = get_mol_grid_central(n, central_point, property_yaml['mol_gradation'], constraint_element_index)
 	if is_custom and custom_data is not None:
 		data = custom_data
 	elif is_custom and custom_data is None:
@@ -292,63 +226,27 @@ def main(composition,
 	else:
 		data = get_data(mol_dict, property_str, composition)
 
-	# plot_grid = set_plot_grid()
-	
 	color_param = color_params(*cbar_property(property_str, composition))
-	plot_param = list(plot_params(y_bias=0.4))
-	plot_param[2] = fontsize
+	plot_param = list(plot_params())
 	matplotlib.rcParams.update({'font.size': plot_param[2]})
+	
 	if central_point is None:
-		total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement, mol_gradation)
-		plot_text(composition, total, plot_param, plot_grid[1], n, mol_gradation)
+		total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement)
+		plot_text(composition, total, plot_param, plot_grid[1], n)
 		plot_circles_center(data, n, plot_grid, color_param, plot_param)
 		
 	else:
 		y_max = 0
 		for keys in mol_dict.values():
-			
 			radii = pm.distance_calculator_special(central_point, keys[-1])
 			y_max = max(y_max, radii)
 		
-		
-		total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement, mol_gradation,
+		total = plot_bars(n, subset_idx, plot_grid, data, color_param, plot_param, replacement,
 						  central_point=central_point, ymax=y_max)
-		plot_text(composition, total, plot_param, plot_grid[1], n, mol_gradation, central_point=central_point, ymax=y_max)
+		plot_text(composition, total, plot_param, plot_grid[1], n, central_point=central_point, ymax=y_max)
 		plot_circles_center(data, n, plot_grid, color_param, plot_param, central_point=central_point)
-		title = list(zip(composition, central_point))
+		# title = list(zip(composition, central_point))
 		# plot_grid[1].set_title(''.join([f'${key}' +'_{' +  str(value) + "}$" for key, value in title]), x = -0.25, y = 1.05, fontsize = fontsize)
 	
 	if not cbar_hide:
 		property_cbar(color_param[0], color_param[1], cbar_ax, plot_param[2], property_str)
-
-
-# composition = ['A', 'B', 'C', 'D'] #arbitary elements work only for gibbs
-# constraint_element_index = None
-# property_str = 'gibbs'
-# subset_idx = None
-# replacement = None
-# custom_data = None
-# is_custom = False
-#
-# fig = plt.figure(figsize=(7.48, 5))
-# ax1 = fig.add_subplot(projection='polar')
-# ax1.set_yticks([])
-# ax1.set_xticks([])
-# ax1.spines["polar"].set_visible(False)
-# ax1.grid(False)
-#
-# plot_grid = fig, ax1
-# main(composition = composition,
-# 	 plot_grid = plot_grid,
-# 	 constraint_element_index = constraint_element_index,
-# 	 custom_data = custom_data,
-# 	 is_custom = is_custom,
-# 	 property_str = property_str,
-# 	 cbar_hide=False,
-# 	 cbar_ax=ax1,
-# 	 fontsize = 14,
-# 	 central_point=[0.8, 0.09, 0.1, 0.01])
-#
-# composition_name = '-'.join(composition)
-# plt.savefig(f"plots/{composition_name}_{str(subset_idx)}_{str(replacement)}{property_str}.png", dpi=200,
-# 			bbox_inches='tight')
