@@ -3,7 +3,7 @@ import pickle
 import matplotlib.gridspec as gridspec
 import matplotlib
 
-from utils import get_mol_grid_central
+from utils import get_mol_grid_central, get_mol_grid_special
 from inverse_hull_web import InverseHullWeb, IHWPlotter
 from pymatgen.ext.matproj import MPRester
 from pymatgen.analysis.phase_diagram import PhaseDiagram
@@ -133,9 +133,20 @@ ax4.set_yticks([])
 composition = ["Al", "Co", "Cu", "Fe", "Ni"]
 
 
+# central_point = [0.5, 0.0, 0.0, 0.25, 0.25]
+# central_point = [0.7, 0.0, 0.2, 0.1, 0.0]
+# central_point =
 central_point = [0.7, 0.0, 0.2, 0.1, 0.0]
 
-result = get_mol_grid_central(len(composition), central_point, 15, 0)
+special_points = [[0.5, 0.0, 0.0, 0.25, 0.25],
+                  [0.5, 0, 0, 0, 0.5],
+                  [0.25, 0.25, 0.25, 0.25, 0],
+                  [0.0, 0.0, 0.2, 0.8, 0.0],
+                  [5/7, 2/7, 0.0, 0.0, 0.0],
+                  [0.2, 0.2, 0.2, 0.2, 0.2],
+                  [1.0, 0.0, 0.0, 0.0, 0.0]
+                  ]
+result = get_mol_grid_special(len(composition), central_point, special_points, 15)
 
 pd = PhaseDiagram(HEA_entries)
 
@@ -162,7 +173,7 @@ for path, mol_bar in result.items():
 
 
 constraint_element_index = 0
-property_str = 'e_hull'
+property_str = 'phase_boundary'
 subset_idx = None
 replacement = None
 custom_data = data
@@ -176,8 +187,8 @@ mol_grid = main(composition=composition,
 				property_str=property_str,
 				cbar_hide=False,
 				cbar_ax=ax1,
-				central_point=central_point)
-
-plt.savefig("./fig5_revised_trial.png", dpi = 200)
+				central_point=central_point,
+                special_points=special_points)
+plt.savefig("./fig5_revised2.png", dpi = 200)
 
 

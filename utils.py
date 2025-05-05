@@ -5,7 +5,7 @@ import yaml
 
 
 def load_properties_yaml():
-	file_path = "/Users/pravanomprakash/Documents/Projects/Symplex/plotting_parameters.yaml"
+	file_path = "/Users/mcube/Documents/Symplex/plotting_parameters.yaml"
 
 	with open(file_path,'r') as input_file:
 		return list(yaml.safe_load_all(input_file))
@@ -51,6 +51,20 @@ def create_mol_grid_transmutation(
 		mols.append(subtract)
 	
 	return np.array(mols)
+
+
+def create_two_special_points(x, n: int, central_point: Iterable, special_point: Iterable
+							  ) -> np.ndarray:
+
+	central_point = np.array(central_point)
+	special_point = np.array(special_point)
+	assert len(central_point) == n
+	assert np.round(np.sum(central_point), 3) == 1.0
+
+	assert len(special_point) == n
+	assert np.round(np.sum(special_point), 3) == 1.0
+
+	return np.round(np.array([(1 - t) * central_point + t * special_point for t in x]), 3)
 
 
 def find_indices(main_list: list, subset: list) -> list:
@@ -127,3 +141,21 @@ def get_mol_grid_central(n, central_point, mol_gradation, constraint_element_ind
 
 
 	return mol_dict
+
+def get_mol_grid_special(n, central_point, special_points, mol_gradation):
+
+	x = np.linspace(0, 1, mol_gradation)
+	components = [i for i in range(n)]
+	mol_dict = {}
+	for idx2, comp in enumerate(special_points):
+		temp_i = comp
+		comp_str = '-'.join(f"{i}_{v}" for i, v in zip(components, temp_i))
+		mol_grid = create_two_special_points(
+			central_point=central_point, x=x, n=n, special_point=comp
+		)
+		mol_dict[comp_str] = mol_grid
+
+
+	return mol_dict
+
+print(get_mol_grid_special(n = 4, central_point = [0.25, 0.25, 0.25 ,0.25], special_points = [[0, 0.2, 0.8, 0], [0.2, 0.4, 0.1, 0.3]], mol_gradation=10))

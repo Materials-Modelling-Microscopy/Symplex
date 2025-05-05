@@ -4,7 +4,7 @@ scaling_factor: 1
 fontsize: 9
 mol_gradation: 15
 bar_line_edgecolor: 'black'
-bar_linewidth: 0.5
+bar_linewidth: 0.0
 vline_alpha : 0.7
 vline_linewidth: 1.0
 replace_rect_height: 0.06
