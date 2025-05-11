@@ -1,3 +1,5 @@
+import re
+
 import matplotlib
 import numpy as np
 from matplotlib.patches import Rectangle
@@ -108,15 +110,15 @@ def plot_bars(n, subset_idx, plot_grid, data, color_params, plot_params, replace
 			)
 
 			ax.add_patch(rect)
-
-			if color != prev_color:
-				x0, y = rect.get_xy()
-				w, h = rect.get_width(), rect.get_height()
-				ax.plot([x0, x0+w], [y, y], color='black', lw=1.0)
-			if i == len(mol) - 2:
-				x0, y = rect.get_xy()
-				w, h = rect.get_width(), rect.get_height()
-				ax.plot([x0, x0+w], [y+h, y+h], color='black', lw=1.0)
+			if property_yaml['boundary_flag']:
+				if color != prev_color:
+					x0, y = rect.get_xy()
+					w, h = rect.get_width(), rect.get_height()
+					ax.plot([x0, x0+w], [y, y], color='black', lw=1.0)
+				if i == len(mol) - 2:
+					x0, y = rect.get_xy()
+					w, h = rect.get_width(), rect.get_height()
+					ax.plot([x0, x0+w], [y+h, y+h], color='black', lw=1.0)
 
 			prev_color = color
 
@@ -226,7 +228,10 @@ def plot_text_special(composition, total, plot_params, ax, n, ymax=None):
 		comp_dict = dict(zip([Element(composition[i[0]]) for i in comp], [i[1] for i in comp]))
 		composition_formula = Composition(comp_dict)
 		# name = ''.join([f"${composition[i[0]]}_" +"{" + f"{i[1]}" +"}$" for i in comp if i[1] != 0])
-		name = composition_formula.get_integer_formula_and_factor()[0]
+		name = str(composition_formula.get_integer_formula_and_factor()[0])
+
+		name_rep = re.sub(r'(?<=[A-Za-z])(\d+(?:\.\d+)?)(?!\d)', r'${_\1}$',
+						  re.sub(r'(?<!\d)(\d+(?:\.\d+)?)(?=[A-Za-z])', r'${_\1}$', name))
 		if ymax is None:
 			radius = pm.distance_calculator(n, 1) * scaling_factor + 1.1 * y_bias
 		else:
@@ -238,7 +243,7 @@ def plot_text_special(composition, total, plot_params, ax, n, ymax=None):
 		ax.text(
 			angles[idx],
 			radius,
-			name,
+			name_rep,
 			ha=ha,
 			va="center",
 			color=color,

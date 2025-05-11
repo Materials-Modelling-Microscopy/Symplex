@@ -134,19 +134,26 @@ composition = ["Al", "Co", "Cu", "Fe", "Ni"]
 
 
 # central_point = [0.5, 0.0, 0.0, 0.25, 0.25]
-central_point = [0.7, 0.0, 0.2, 0.1, 0.0] #Al7FeCu2
+central_point = [0.2, 0.2, 0.2, 0.2, 0.2]
+# central_point =
 
-special_points = [[0.5, 0.0, 0.0, 0.25, 0.25], #Al2FeNi
-                  [0.5, 0, 0, 0, 0.5], #AlNi
-                  [0.25, 0.25, 0.25, 0.25, 0], #AlCoCuFe
-                  [0.25, 0.0, 0.0, 0.75, 0.0], #AlFe3
+special_points = [
+                  [4/13, 0.0, 9/13, 0.0, 0.0], #Al4Cu9
+                  [0.5, 0.0, 0.5, 0.0, 0.0], #AlCu
+                  [6/7, 0.0, 0.0, 1/7, 0.0], #Al6Fe
                   [5/7, 2/7, 0.0, 0.0, 0.0], #Al5Co2
+                  [0.5, 0, 0, 0, 0.5], #AlNi
+                  [0.5, 0.0, 0.0, 0.25, 0.25], #Al2FeNi
+                  [5/7, 0.0, 0.0, 1/7, 1/7], #Al5FeNi
+                  [12/17, 4/17, 1/17, 0.0, 0.0], #Al12Co4Cu
                   [0.5, 0.25, 0.0, 0.25, 0.0], #Al2CoFe
-                  [1.0, 0.0, 0.0, 0.0, 0.0], #Al
-                  [0.0, 0.5, 0.5, 0.0, 0.0], #CoCu
-                  [0.0, 0.0, 0.0, 0.5, 0.5], #FeNi
-                  [0.0, 0.5, 0.0, 0.5, 0.0 ], #CoFe
-                  [0.0, 1/3, 0.0, 1/3, 1/3], #CoFeNi
+                  [0.7, 0.0, 0.2, 0.1, 0.0], #Al7FeCu2
+                  [0.25, 0, 0, 0, 0.75], #AlNi3
+                  [1.0, 0.0, 0.0, 0.0, 0.0 ], #Al
+                  [0.0, 1.0, 0.0, 0.0, 0.0 ], #Cu
+                  [0.0, 0.0, 1.0, 0.0, 0.0 ], #Co
+                  [0.0, 0.0, 0.0, 1.0, 0.0 ], #Fe
+                  [0.0, 0.0, 0.0, 0.0, 1.0 ] #Ni
                   ]
 
 result = get_mol_grid_special(len(composition), central_point, special_points, 15)
@@ -161,7 +168,7 @@ for path, mol_bar in result.items():
         mol_ratio = dict(zip(composition, mol))
         entry = Composition(mol_ratio)
         comp_entry = _make_entry_from_formEperatom(pd, entry,
-                                                   get_dGmix(entry, T=1500))
+                                                   get_dGmix(entry, T=1800))
         try:
             e_hull = pd.get_e_above_hull(comp_entry)
             if np.isclose(e_hull, 0, atol=1e-3, rtol=1e-3):
@@ -176,7 +183,7 @@ for path, mol_bar in result.items():
 
 
 constraint_element_index = 0
-property_str = 'phase_boundary'
+property_str = 'e_hull'
 subset_idx = None
 replacement = None
 custom_data = data

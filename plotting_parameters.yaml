@@ -12,6 +12,7 @@ replace_radius_bias: 0.06
 fontname: 'Helvetica'
 fontcolor: 'black'
 composition_fontcolor: '#BB5566'
+boundary_flag: False
 ---
 circle_linewidth: 0.8
 circle_alpha: 0.1
@@ -51,7 +52,7 @@ e_hull:
 phase_boundary:
   miscible_color: '#009988'
   immiscible_color: 'salmon'
-  stable_bound: 0.005
+  stable_bound: 0.002
   max_bound: 0.4
   label: "$E_{hull}$ (eV/atom)"
 entropy:
@@ -77,6 +78,11 @@ elastic:
   norm_min_bound: 100
   norm_max_bound: 300
   label: "$E (GPa)$"
+phase_fraction:
+  cmap_color: 'Blues'
+  norm_min_bound: 0
+  norm_max_bound: 1
+  label: "Phase Fraction"
 
 
 

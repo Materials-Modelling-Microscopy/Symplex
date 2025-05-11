@@ -100,6 +100,10 @@ def cbar_property(property, composition):
 	elif property == "elastic":
 		cmap = plt.get_cmap(property_meta_data['cmap_color'])
 		norm = mcolors.Normalize(vmin=property_meta_data["norm_min_bound"], vmax=property_meta_data["norm_max_bound"])
+
+	elif property == "phase_fraction":
+		cmap = plt.get_cmap(property_meta_data['cmap_color'])
+		norm = mcolors.Normalize(vmin=property_meta_data["norm_min_bound"], vmax=property_meta_data["norm_max_bound"])
 	
 	return cmap, norm
 
@@ -118,7 +122,7 @@ def property_cbar(cmap, norm, ax, fontsize, property):
 						  pos.width + cbar_properties['width_shift'] ,
 						  pos.height + cbar_properties['height_shift']])
 
-	if property == 'e_hull':
-		cbar.ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.4]) # bit of hardcoding
+	# if property == 'e_hull':
+	# 	cbar.ax.set_xticks([0.0, 0.01, 0.02, 0.03, 0.04, 0.4]) # bit of hardcoding
 
 	cbar.set_label(property_yaml[property]['label'], fontsize = fontsize)

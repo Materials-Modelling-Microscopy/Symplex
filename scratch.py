@@ -3,7 +3,7 @@ from typing import List, Iterable
 from main import main
 from utils import get_mol_grid, create_high_sym_mol_grid, get_mol_grid_central
 import numpy as np
-
+import pickle
 
 mol_gradation = 15
 n = 5
@@ -54,18 +54,27 @@ ax1.set_yticks([])
 ax1.set_xticks([])
 ax1.spines["polar"].set_visible(False)
 ax1.grid(False)
-composition = ['Cr', 'Fe', 'Mn', 'Ni']
+composition = ['Hf', 'Mo', 'Nb', 'Ta', 'Ti']
 constraint_element_index = 0
-property_str = 'density'
-custom_data = None
-is_custom = False
+property_str = 'phase_fraction'
+#
+with open(f"./{'-'.join(composition)}_data.pkl", "rb") as f:
+	data = pickle.load(f)
+
+
+# custom_data = None
+custom_data = data
+is_custom = True
 plot_grid = fig, ax1
-central_point = [0.2, 0.2, 0.2, 0.4]
-special_points = [[0.25, 0.25, 0.25, 0.25],
-				  [0.4, 0.0, 0.2, 0.4],
-				  [0, 0, 0, 1],
-				  [1, 0, 0, 0],
-				  [0.25, 0.2, 0.2, 0.35]]
+# central_point = [0.2, 0.2, 0.2, 0.4]
+# special_points = [[0.25, 0.25, 0.25, 0.25],
+# 				  [0.4, 0.0, 0.2, 0.4],
+# 				  [0, 0, 0, 1],
+# 				  [1, 0, 0, 0],
+# 				  [0.25, 0.2, 0.2, 0.35]]
+central_point = None
+special_points = None
+
 
 mol_grid = main(composition=composition,
 				plot_grid=plot_grid,
@@ -77,4 +86,9 @@ mol_grid = main(composition=composition,
 				cbar_ax=ax1,
 				central_point=central_point,
 				special_points= special_points)
+
+
+with open(f"{'-'.join(composition)}.pkl", 'wb') as f:
+	pickle.dump(mol_grid, f)
+
 plt.show()
