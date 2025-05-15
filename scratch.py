@@ -54,7 +54,7 @@ ax1.set_yticks([])
 ax1.set_xticks([])
 ax1.spines["polar"].set_visible(False)
 ax1.grid(False)
-composition = ['Hf', 'Mo', 'Nb', 'Ta', 'Ti']
+composition = ['Nb', 'Ti', 'V', 'Zr']
 constraint_element_index = 0
 property_str = 'phase_fraction'
 #

@@ -157,5 +157,3 @@ def get_mol_grid_special(n, central_point, special_points, mol_gradation):
 
 
 	return mol_dict
-
-print(get_mol_grid_special(n = 4, central_point = [0.25, 0.25, 0.25 ,0.25], special_points = [[0, 0.2, 0.8, 0], [0.2, 0.4, 0.1, 0.3]], mol_gradation=10))

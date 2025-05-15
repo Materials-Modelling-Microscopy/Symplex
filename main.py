@@ -230,8 +230,8 @@ def plot_text_special(composition, total, plot_params, ax, n, ymax=None):
 		# name = ''.join([f"${composition[i[0]]}_" +"{" + f"{i[1]}" +"}$" for i in comp if i[1] != 0])
 		name = str(composition_formula.get_integer_formula_and_factor()[0])
 
-		name_rep = re.sub(r'(?<=[A-Za-z])(\d+(?:\.\d+)?)(?!\d)', r'${_\1}$',
-						  re.sub(r'(?<!\d)(\d+(?:\.\d+)?)(?=[A-Za-z])', r'${_\1}$', name))
+		name_rep = re.sub(r'(?<=[A-Za-z])(\d+(?:\.\d+)?)(?!\d)', r'$_{\1}$',
+						  re.sub(r'(?<!\d)(\d+(?:\.\d+)?)(?=[A-Za-z])', r'$_{\1}$', name))
 		if ymax is None:
 			radius = pm.distance_calculator(n, 1) * scaling_factor + 1.1 * y_bias
 		else:
